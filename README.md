@@ -13,7 +13,8 @@ Note: Due to large videos files of every project examples and Master's related g
 
 
 4. Individual Thesis description : My thesis, titled "The development of a medical robot for automated ultrasound scan," was completed under the supervision of Cranfield University. The project's goal is to create a robot system capable of doing ultrasonic scans on human patients utilising a robot manipulator in accordance with machine vision. The thesis is separated into two parts: the first is about process simulation, and the second is about using machine vision to recognise landmarks. The simulation results in the files demonstrate the process of automated ultrasonic scan in which it will first go to the location of clicking the image with the help of camera connected at the top of the manipulator's end-effector. The following phase will be an ultrasound scan in the form of a pivotal scan. The folder contains two videos, the first of which displays the path generated and the second of which depicts the ultrasound scan procedure. The next folder contains the results of landmarks produced on the body, in which the robot will recognise the navel as a landmark and execute the ultrasonic scan depicted in the simulation phase. Landmarks were created using machine vision and the bounding box idea.
- ![image](https://github.com/jimitsavla97/savlajimit/assets/124091647/89da485b-be8f-47a3-9673-76d5d118eef2)
+
+![image](https://github.com/jimitsavla97/savlajimit/assets/124091647/89da485b-be8f-47a3-9673-76d5d118eef2)
 
 
 5. PCB Example : Example of PCB design is included in this file by using eagle to create pcb board based on schematic circuit and components placement and also how to get 3D cad model of the circuit using eagle.
