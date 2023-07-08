@@ -1,4 +1,4 @@
-Note: Due to large videos file of every project examples and Master's related group project & Individual thesis, You will have to download the videos to watch its working and output.  
+Note: Due to large videos files of every project examples and Master's related group project & Individual thesis, You will have to download the videos to watch its working and output.  
 
 1. Home Automation Security : This files includes the output videos of different detection occured such as fire, smoke, motion, temperature and Body temperature reading. It was created with the help of various sensors like MQ-2 SENSOR FOR smoke detection, IR sensor for fire detection, PIR sensor for motion detection, lm35 transistor for room temperature reading, mlx sensor for body temp check and ESP8266 Wi-Fi module to integrate arduino with bylnk mobile application where its show all the readings and notification on any detection.<img width="479" alt="image" src="https://github.com/jimitsavla97/savlajimit/assets/124091647/dfdc8d0b-b985-466a-b828-61f1f4c90cee">
 
