@@ -1,0 +1,159 @@
+#include <opencv2/opencv.hpp>  // including the library of the opencv 
+#include <opencv2/highgui.hpp> // including the library of graphical user interface
+#include <opencv2/imgproc.hpp> // including the library of image processing 
+#include <iostream>            // standard libary of visual studio
+
+using namespace cv;           //defining the cv which is used for declaring the object
+using namespace std;          // defining the std which is used for declaring the standard library 
+
+Mat video_capture, greyscale, blurimage, cannyimage, kernelimage, dilateimage, thresimage, erodeimage; // defining the matrix of all image processing file
+RNG rng(12345);                // it is used for generating random number for rgb values 
+
+const string windowName = "Shapes measurement - Live video"; // windowName is been defined 
+
+
+void thresh_callback(int, void*);    // it is used for calling back the function of thresh
+
+
+int main(int argc, char** argv)      // main function is been initialized with defining the argument value and count
+{
+
+// namewinWindow of all output is been created as a normal size window
+
+    namedWindow("windowName", WINDOW_NORMAL);
+    resizeWindow("windowName", 640, 480);
+    namedWindow("grey live", WINDOW_NORMAL);
+    resizeWindow("grey live", 640, 480);
+    namedWindow("gaussian live", WINDOW_NORMAL);
+    resizeWindow("gaussian live", 640, 480);
+    namedWindow("canny live", WINDOW_NORMAL);
+    resizeWindow("canny live", 640, 480);
+    namedWindow("dilate live", WINDOW_NORMAL);
+    resizeWindow("dilate live", 640, 480);
+    namedWindow("erode live", WINDOW_NORMAL);
+    resizeWindow("erode live", 640, 480);
+    namedWindow("threshold live", WINDOW_NORMAL);
+    resizeWindow("threshold live", 640, 480);
+    namedWindow("contour live", WINDOW_NORMAL);
+    resizeWindow("contour live", 640, 480);
+    namedWindow("shapes live", WINDOW_NORMAL);
+    resizeWindow("shapes live", 640, 480);
+
+ //All window is been resize into width of 640 and height of 480 for better output
+    
+    VideoCapture cap(1);             // videocapture is been command of using 1st camera that is mobile phone camera           
+    Size size1 = cv::Size(cap.get(CAP_PROP_FRAME_WIDTH), cap.get(CAP_PROP_FRAME_HEIGHT));   // size of required window is been set
+    if (!cap.isOpened())            // condition of camera is not opened it will follow the loop instruction
+    {
+      std::cout << "Can't open, Check the Camera " << std::endl;    // it will show the error message at the output if no camera is found
+        exit(0);
+    }
+    int nFrames = 500;                   // nframes has been set to 500 which means the camera will capture 500 times to form the video
+    for (int i = 0; i < nFrames; i++)     // for loop is been defined by innitilazing i 
+    {
+        cap >> video_capture ;            // the output of cap which contains capture of 500 images is been transferred into video_capture
+
+        cvtColor(video_capture, greyscale, COLOR_BGR2GRAY);  //with help of cvtcolor command it will convert video_capture into grey image
+
+        GaussianBlur(greyscale, blurimage, Size(3, 3), 3, 0); // with help of GaussianBlur command it will convert into blur image
+
+        Canny(blurimage, cannyimage, 25, 75, 3, false);   //with help of canny command it will convert into canny image 
+
+        Mat kernelimage = getStructuringElement(MORPH_RECT, Size(3, 3)); // kernelimage will act as a filtering image which will be used to fill up the gap of the image
+        dilate(cannyimage, dilateimage, kernelimage, Point(-1, -1), 1, BORDER_CONSTANT, morphologyDefaultBorderValue());  // with help of dilate it will convert into dilateimage which add kernel filtering and output of canny
+
+        erode(dilateimage, erodeimage, kernelimage, Point(-1, -1), 1); // with help of erode it will form erode image by comparing it to kernalimage and try to fill the remianing gaps
+
+        Mat contoursInv; // matrix of contourInv is been defined
+        threshold(erodeimage, thresimage, 25, 75, THRESH_BINARY_INV);  // with help of threshold command it will form thresimage from erodeimage 
+
+        vector<vector<Point>>contourimage;  // point of inner vector will be formed on contourimage
+        vector<Vec4i>hierarchy;      // vector of four points is formed on hierarchy 
+        findContours(dilateimage, contourimage, hierarchy, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE); // with helpl of find contour, it will find shapes from dilateimage and store into contourimage
+
+        Mat drawing = Mat::zeros(cannyimage.size(), CV_8UC3);    //cannyimage size is been stored in mat drawing 
+        for (int i = 0; i < contourimage.size(); i++)      // for loop is been created for contourimage having it coordinates point of x and y 
+        {
+            Scalar color = Scalar(rng.uniform(0, 255), rng.uniform(0, 0), rng.uniform(0, 0));   // scalar is used for colouring any object by defining the value with help of rng
+            drawContours(video_capture, contourimage, (int)i, color, 1.5, LINE_8, hierarchy, 0, Point()); // drawcontour will draw the border on contourimage with help of define scalar color that is blue 
+
+            int area = contourArea(contourimage[i]);    // contourarea of contourimage is been stored in area 
+           
+            vector<Rect> boundRect(contourimage.size()); // boundrect is been defined which will form at outer vector of the shape
+            string shapes_name; // shapes_name is defined
+            string output_width;
+
+            if (area > 1000)     // condition is set 
+            {
+                float peri_meter = arcLength(contourimage[i], true);  // the arcLength is used for finding the closeness of shapes with contour
+                approxPolyDP(contourimage[i], contourimage[i], 0.02 * peri_meter, true);  // this function is used for approximating the shapes sides of contourimage 
+
+                boundRect[i] = boundingRect(contourimage[i]);    // with help of boundingrect it will form outer shapes box for calculating the measurement of shapes 
+                double X_width = boundRect[i].width; // width from boundrect is stored into X_width
+
+                double Y_height = boundRect[i].height;   //height from boundrect is stored into X_height
+
+                //double pix_pitch = 1.22; 
+                //double foc_length = 32;
+                double z_depth = 165;  // it is the length between obeject and shapes in mm which is constant 
+
+                double width_image_p = 3088 ;  // it is the value of width in pixels obtain from picture clicked from iphone se 2020 model at distance of z_depth
+                double width_image_v = 640;    // it is the value of width in pixels obtain from visual studio 
+               
+                //double pix_pitch = 1.22; it is the value of camera sensor pixel pitch or dot pitch
+               //double foc_length = 32;it is the value of camera image focal length
+               //double camera_width = (pix_pitch * width_image_p);ccd is obtained by multiplication of pixel pitch which is value of camera sensor and image width of camera image
+               // double f_in_pixels = (width_image_v * (foc_length /camera_width ));f in pixels is calculated by multiplying the width of visual studio with division of focal length of camera and ccd.
+               
+            
+                double final_width = z_depth * (X_width / 592.15396);  // final width is calculated by multiplying the z_depth with division of X_width which is obtain from boundingrect and 592.15396 which is the value of f in pixels
+                cout << "width:" << final_width << endl; // output of shapes width is been shown on output box 
+             
+                double final_height = z_depth * (Y_height / 592.15396);// final height is calculated by multiplying the z_depth with division of Y_height which is obtain from boundingrect and 592.15396 which is the value of f in pixels
+                cout << "height:" << final_height << endl; // output of shapes height is been shown on output box
+
+                int object_detect = (int)contourimage[i].size();  // countourimage size is been stored into object_detect which will detect the shapes
+
+
+                if (object_detect == 4)          //if it is four, it will check whether it is square or rectangle
+                {
+                    float sidesratio = (float)boundRect[i].width / (float)boundRect[i].height; // with help of width and height obtain from bounrect, it will store at sidesratio
+                    if (sidesratio > 0.95 && sidesratio < 1.05)    //condition is been set for detecting the shapes as square
+                    {
+                        shapes_name = "square";
+                    }
+                    else
+                    {
+                        shapes_name = "Rectangle";  // if it is not square, it will label as rectangle
+                    }
+                }
+                
+                if (object_detect >= 8)      //if it is more than eight, it will show circle
+                {
+                    shapes_name = "circle";
+                }
+
+                rectangle(video_capture, boundRect[i].tl(), boundRect[i].br(), Scalar(0, 0, 255), 2);     //rectangle shape is been set for outer layer of the boundrect shapes
+                putText(video_capture, shapes_name, { boundRect[i].x,boundRect[i].y - 5 }, FONT_HERSHEY_PLAIN, 1, Scalar(50, 25, 0), 1);  //puttext is used for displaying the text of shapes_name at the output window
+
+            }
+
+        }
+
+    //with help of imshow, it will display all the namewindow output at output display 
+        imshow("windowName", video_capture);
+        imshow("grey live", greyscale);
+        imshow("gaussian live", blurimage);
+        imshow("canny live", cannyimage);
+        imshow("dilate live", dilateimage);
+        imshow("erode live", erodeimage);
+        imshow("threshold live", thresimage);
+        imshow("contour live",dilateimage);
+        imshow("shapes live", video_capture);
+
+        waitKey(100);   // wait key is been set which is also known as delay time
+
+    }
+
+    return 0;     // it will return to 0 after perfoming the loop 
+}
